@@ -256,3 +256,7 @@ def reports():
 # ---------------- RUN ----------------
 if __name__ == '__main__':
     app.run(debug=True)
+else:
+    # For Vercel deployment
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app)

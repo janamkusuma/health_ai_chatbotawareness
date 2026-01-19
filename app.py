@@ -9,7 +9,9 @@ from deep_translator import GoogleTranslator
 
 init_db()
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+#pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+import shutil
+pytesseract.pytesseract.tesseract_cmd = shutil.which("tesseract")
 
 from flask import Flask, render_template, request, jsonify, redirect, session
 from flask_sqlalchemy import SQLAlchemy
@@ -21,7 +23,9 @@ nltk.download('punkt')
 
 # ---------------- APP CONFIG ----------------
 app = Flask(__name__)
-app.secret_key = "healthsecret"
+import os
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "healthsecret")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -256,7 +260,3 @@ def reports():
 # ---------------- RUN ----------------
 if __name__ == '__main__':
     app.run(debug=True)
-else:
-    # For Vercel deployment
-    from werkzeug.middleware.proxy_fix import ProxyFix
-    app.wsgi_app = ProxyFix(app.wsgi_app)

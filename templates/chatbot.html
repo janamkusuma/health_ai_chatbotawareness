@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Health Chatbot</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="top-bar">
+  <h2>AI Health Chatbot</h2>
+  <a href="/">Back</a>
+</div>
+
+<div class="chat-container">
+  <div id="chat-box"></div>
+
+  <div class="chat-input">
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="te">Telugu</option>
+      <option value="hi">Hindi</option>
+      <option value="ta">Tamil</option>
+    </select>
+
+    <input id="userInput" placeholder="Type your health question..." onkeydown="checkEnter(event)">
+
+    <button onclick="startVoice()">🎤</button>
+
+    <input type="file" id="fileInput" style="display:none" onchange="sendFile()">
+    <button onclick="document.getElementById('fileInput').click()">➕</button>
+
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+function appendMessage(sender, text) {
+  const box = document.getElementById("chat-box");
+  box.innerHTML += `<p><b>${sender}:</b> ${text}</p>`;
+  box.scrollTop = box.scrollHeight;
+}
+
+// 🔊 AI Voice Output
+function speakText(text, lang) {
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = (lang==="te")?"te-IN":(lang==="hi")?"hi-IN":(lang==="ta")?"ta-IN":"en-IN";
+  window.speechSynthesis.speak(speech);
+}
+
+// 🎤 Voice Input
+function startVoice() {
+  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){
+    alert("Please use Google Chrome for voice input");
+    return;
+  }
+
+  const lang = document.getElementById("lang").value;
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = (lang==="te")?"te-IN":(lang==="hi")?"hi-IN":(lang==="ta")?"ta-IN":"en-IN";
+
+  recognition.onresult = function(event) {
+    const text = event.results[0][0].transcript;
+    document.getElementById("userInput").value = text;
+    sendMessage();
+  };
+  recognition.start();
+}
+
+// ⌨️ Text or Voice Input
+async function sendMessage() {
+  let text = document.getElementById("userInput").value.trim();
+  const lang = document.getElementById("lang").value;
+  if(!text) return;
+
+  appendMessage("You", text);
+
+  // 1️⃣ Translate user text to English if needed
+  let translatedText = text;
+  if(lang !== "en"){
+    try{
+      const t = await fetch("/translate",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({text:text, target_lang:"en"})
+      }).then(r=>r.json());
+      translatedText = t.text;
+    }catch(e){ translatedText = text; }
+  }
+
+  // 2️⃣ Send to AI
+  let reply = "";
+  try{
+    const res = await fetch("/get_response",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({message:translatedText})
+    }).then(r=>r.json());
+    reply = res.answer;
+  }catch(e){
+    reply = "Server Error";
+  }
+
+  // 3️⃣ Translate AI reply back to selected language
+  if(lang !== "en"){
+    try{
+      const t2 = await fetch("/translate",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({text:reply, target_lang:lang})
+      }).then(r=>r.json());
+      reply = t2.text;
+    }catch(e){}
+  }
+
+  appendMessage("Doctor AI", reply);
+  speakText(reply, lang);
+
+  document.getElementById("userInput").value = "";
+}
+
+// Enter key
+function checkEnter(e){
+  if(e.key === "Enter") sendMessage();
+}
+
+// 📎 File Upload
+function sendFile(){
+  const file = document.getElementById("fileInput").files[0];
+  if(!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  fetch("/upload_media",{
+    method:"POST",
+    body: formData
+  })
+  .then(r=>r.json())
+  .then(d=>appendMessage("System", d.answer))
+  .catch(()=>appendMessage("System","File upload failed"));
+}
+</script>
+
+</body>
+</html>

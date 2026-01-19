@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Health Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="top-bar">
+  <h2>AI Health Dashboard</h2>
+  <a href="/logout">Logout</a>
+</div>
+
+<div class="dashboard">
+  <div class="card" onclick="location.href='/chatbot'">
+  <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png">
+  <h3>Health Chatbot</h3>
+  <p>Ask health questions</p>
+</div>
+
+
+  <div class="card" onclick="location.href='/symptom_checker'">
+    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png">
+    <h3>Symptom Checker</h3>
+    <p>Check risk level</p>
+  </div>
+
+  <div class="card" onclick="location.href='/medical_scanner'">
+    <img src="https://cdn-icons-png.flaticon.com/512/3176/3176366.png">
+    <h3>Medicine Scanner</h3>
+    <p>Upload tablet image</p>
+  </div>
+
+  <div class="card" onclick="location.href='/reports'">
+    <img src="https://cdn-icons-png.flaticon.com/512/3179/3179068.png">
+    <h3>Reports</h3>
+    <p>View health history</p>
+  </div>
+</div>
+
+</body>
+</html>

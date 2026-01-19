@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Symptom Checker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #2c3e50; }
+        #symptomForm { margin-bottom: 20px; }
+        button {
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover { background-color: #2980b9; }
+        #results { list-style: none; padding-left: 0; }
+        #results li {
+            background-color: #ecf0f1;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #results strong { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h2>Symptom Checker</h2>
+    <p>Select your symptoms:</p>
+
+    <form id="symptomForm">
+        <input type="checkbox" name="symptoms" value="fever"> Fever<br>
+        <input type="checkbox" name="symptoms" value="headache"> Headache<br>
+        <input type="checkbox" name="symptoms" value="cough"> Cough<br>
+        <input type="checkbox" name="symptoms" value="fatigue"> Fatigue<br>
+        <button type="submit">Check</button>
+    </form>
+
+    <h3>Possible Diseases:</h3>
+    <ul id="results"></ul>
+
+    <script>
+        const form = document.getElementById("symptomForm");
+        const results = document.getElementById("results");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const symptoms = formData.getAll("symptoms");
+
+            if(symptoms.length === 0){
+                alert("Please select at least one symptom!");
+                return;
+            }
+
+            const response = await fetch("/check_symptoms", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ symptoms })
+            });
+
+            const data = await response.json();
+            results.innerHTML = "";
+
+            // Show risk level
+            const riskLi = document.createElement("li");
+            riskLi.innerHTML = `<strong>Risk Level:</strong> ${data.risk_level}`;
+            riskLi.style.backgroundColor = data.risk_level === "High" ? "#e74c3c" :
+                                          data.risk_level === "Medium" ? "#f39c12" : "#2ecc71";
+            riskLi.style.color = "white";
+            riskLi.style.padding = "5px";
+            results.appendChild(riskLi);
+
+            // Show simplified diseases
+            for (const [disease, explanation] of Object.entries(data.diseases)) {
+                const li = document.createElement("li");
+                li.innerHTML = `<strong>${disease}:</strong> ${explanation}`;
+                results.appendChild(li);
+            }
+        });
+    </script>
+</body>
+</html>

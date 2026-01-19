@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Health Reports</title>
+<style>
+body{font-family:Arial}
+table{border-collapse:collapse;width:90%;margin:20px}
+th,td{border:1px solid #555;padding:10px;text-align:center}
+th{background:#2ecc71;color:white}
+</style>
+</head>
+<body>
+
+<h2>Health History</h2>
+
+<table>
+<tr>
+<th>Date</th>
+<th>Activity</th>
+<th>Result</th>
+</tr>
+
+{% for r in reports %}
+<tr>
+<td>{{r[0]}}</td>
+<td>{{r[1]}}</td>
+<td>{{r[2]}}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<a href="/">⬅ Back to Home</a>
+
+</body>
+</html>
